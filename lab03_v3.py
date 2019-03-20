@@ -72,7 +72,6 @@ if __name__== "__main__":
     # configure adc
     configure_adc(bus)
 
-
     # get raw adc reading
     read = get_raw_adc_reading(bus)
     print("adc reading is:", hex(read), "in hex,", read, "in decimal")
@@ -80,21 +79,8 @@ if __name__== "__main__":
     vol = convert_adc_read_to_voltage(read)
     print("voltage is:", vol)
 
-    f_degree = (36.027 * vol) - 111.14
-    print("temp is:", f_degree)
-
-    # calculate the voltage
-    # voltage = convert_adc_read_to_voltage(read)
-    # print("voltage is:", voltage)
-
-    # temp
-    # temp = convert_voltage_to_temp(voltage)
-    # print("temperature is:", temp)
-
-    # seq = '10111'
-    # seq = get_blink_sequence(temp)
-    # print("the blink sequence is:", seq)
-
-    # blink_in_sequence(output_pin, seq)
-
-    # GPIO.cleanup()
+    c_degree = (0.0003 * vol * vol) - (0.0675 * vol) + 3.7257
+    # c_degree = -3 * 10 ** -8 * vol ** 4 + 6 * 10 ** -6
+    # c_degree = (0.0003 * vol * vol) - (0.0675 * vol) + 2
+    # c_degree = (5 * (10 ** -10) * (vol ** 5)) - (2 * (10 ** -7) * (vol ** 4)) + (2 * (10 ** -5) * (vol ** 3)) - (0.0007 * (vol ** 2)) - (0.0484 * vol + 3.6453)
+    print("temp is:", c_degree)

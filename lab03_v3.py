@@ -79,8 +79,9 @@ if __name__== "__main__":
     vol = convert_adc_read_to_voltage(read)
     print("voltage is:", vol)
 
-    c_degree = (0.0003 * vol * vol) - (0.0675 * vol) + 3.7257
+    # c_degree = (0.0003 * vol * vol) - (0.0675 * vol) + 3.7257
     # c_degree = -3 * 10 ** -8 * vol ** 4 + 6 * 10 ** -6
     # c_degree = (0.0003 * vol * vol) - (0.0675 * vol) + 2
     # c_degree = (5 * (10 ** -10) * (vol ** 5)) - (2 * (10 ** -7) * (vol ** 4)) + (2 * (10 ** -5) * (vol ** 3)) - (0.0007 * (vol ** 2)) - (0.0484 * vol + 3.6453)
+    c_degree = 53.2 + (-9.07*x) + (-1.43*(x**2))
     print("temp is:", c_degree)

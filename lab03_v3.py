@@ -38,7 +38,7 @@ def convert_voltage_to_temp(voltage):
     temp = 0
     if 2.71644162 < voltage < 3.697916667:
         temp = 53.2 + (-9.07*voltage) + (-1.43*(voltage**2))
-    else if 1.67168326 < voltage < 2.65974766:
+    elif 1.67168326 < voltage < 2.65974766:
         temp = 78.8 + (-27.8*voltage) + (2*(voltage**2))
 
     return temp
@@ -80,5 +80,6 @@ if __name__== "__main__":
     vol = convert_adc_read_to_voltage(read)
     print("voltage is:", vol)
 
+    # the more precise the better
     c_degree = convert_voltage_to_temp(vol)
     print("temp is:", c_degree)

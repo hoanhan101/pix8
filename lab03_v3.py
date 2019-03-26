@@ -28,19 +28,20 @@ def get_raw_adc_reading(my_bus):
     return (read[0] << 8 ) + read[1]
 
 def convert_adc_read_to_voltage(read):
-    # return (read * 3.3 * 10 ** 3) / (2 ** 16)
-    # return ((65512 - read) / (65512 - 32767)) * 5
     if read > 32767:
         return ((65512 - read) / (65512 - 32767)) * -5
     else:
         return read / 32767 * 5
 
 def convert_voltage_to_temp(voltage):
-    # return absolute value of the coversion
-    return abs((voltage - 500) / 10)
+    # return temp is in C
+    temp = 0
+    if 2.71644162 < voltage < 3.697916667:
+        temp = 53.2 + (-9.07*voltage) + (-1.43*(voltage**2))
+    else if 1.67168326 < voltage < 2.65974766:
+        temp = 78.8 + (-27.8*voltage) + (2*(voltage**2))
 
-def two_complement(read):
-    return (10 ** 16) - bin(read)
+    return temp
 
 def get_blink_sequence(temp):
     return bin(int(temp))[2:]
@@ -79,9 +80,5 @@ if __name__== "__main__":
     vol = convert_adc_read_to_voltage(read)
     print("voltage is:", vol)
 
-    # c_degree = (0.0003 * vol * vol) - (0.0675 * vol) + 3.7257
-    # c_degree = -3 * 10 ** -8 * vol ** 4 + 6 * 10 ** -6
-    # c_degree = (0.0003 * vol * vol) - (0.0675 * vol) + 2
-    # c_degree = (5 * (10 ** -10) * (vol ** 5)) - (2 * (10 ** -7) * (vol ** 4)) + (2 * (10 ** -5) * (vol ** 3)) - (0.0007 * (vol ** 2)) - (0.0484 * vol + 3.6453)
-    c_degree = 53.2 + (-9.07*x) + (-1.43*(x**2))
+    c_degree = convert_voltage_to_temp(vol)
     print("temp is:", c_degree)

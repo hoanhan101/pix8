@@ -59,13 +59,43 @@ def blink_in_sequence(pin, seq):
             time.sleep(short_rest)
         time.sleep(long_rest)
 
+def light_leds(temp):
+
+    if 0 <= temp <= 20:
+        GPIO.output(11, GPIO.HIGH)
+    elif 20 < temp <= 40:
+        GPIO.output(11, GPIO.HIGH)
+        GPIO.output(12, GPIO.HIGH)
+    elif 40 < temp <= 60:
+        GPIO.output(11, GPIO.HIGH)
+        GPIO.output(12, GPIO.HIGH)
+        GPIO.output(13, GPIO.HIGH)
+        print("40 - 60 executed")
+    elif 60 < temp <= 80:
+        GPIO.output(11, GPIO.HIGH)
+        GPIO.output(12, GPIO.HIGH)
+        GPIO.output(13, GPIO.HIGH)
+        GPIO.output(15, GPIO.HIGH)
+    else:
+        GPIO.output(11, GPIO.HIGH)
+        GPIO.output(12, GPIO.HIGH)
+        GPIO.output(13, GPIO.HIGH)
+        GPIO.output(15, GPIO.HIGH)
+        GPIO.output(16, GPIO.HIGH)
+
 if __name__== "__main__":
     # set board mode
     GPIO.setmode(GPIO.BOARD)
 
     # setup output pin
-    output_pin = 11
-    GPIO.setup(output_pin, GPIO.OUT)
+    # output_pin = 11
+    # GPIO.setup(output_pin, GPIO.OUT)
+
+    GPIO.setup(11, GPIO.OUT)
+    GPIO.setup(12, GPIO.OUT)
+    GPIO.setup(13, GPIO.OUT)
+    GPIO.setup(15, GPIO.OUT)
+    GPIO.setup(16, GPIO.OUT)
 
     # create a bus object
     bus = smbus.SMBus(1)
@@ -85,7 +115,12 @@ if __name__== "__main__":
         c_degree = convert_voltage_to_temp(vol)
         print("temp is:", c_degree)
 
-        seq = get_blink_sequence(c_degree)
-        print("sequence is: ", seq)
+        GPIO.output(11, GPIO.LOW)
+        GPIO.output(12, GPIO.LOW)
+        GPIO.output(13, GPIO.LOW)
+        GPIO.output(15, GPIO.LOW)
+        GPIO.output(16, GPIO.LOW)
 
-        blink_in_sequence(output_pin, get_blink_sequence(c_degree))
+        light_leds(c_degree)
+
+        time.sleep(long_rest)

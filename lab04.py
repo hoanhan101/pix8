@@ -82,22 +82,6 @@ def convert_voltage_to_temp(voltage):
 
     return temp
 
-def get_blink_sequence(temp):
-    return bin(int(temp))[2:]
-
-def blink(pin):
-    GPIO.output(pin, GPIO.HIGH)
-    time.sleep(short_rest)
-    GPIO.output(pin, GPIO.LOW)
-
-def blink_in_sequence(pin, seq):
-    for i in seq:
-        if i == '1':
-            blink(pin)
-        else:
-            time.sleep(short_rest)
-        time.sleep(long_rest)
-
 if __name__== "__main__":
     # create a bus object
     bus = smbus.SMBus(1)

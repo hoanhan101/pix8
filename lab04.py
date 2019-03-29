@@ -97,7 +97,7 @@ if __name__== "__main__":
     bus = smbus.SMBus(1)
     led_bus = smbus.SMBus(1)
 
-    # cofigure bus
+    # configure bus
     configure_adc(bus)
     configure_led(led_bus)
 

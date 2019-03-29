@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
-# lab03.py
+# lab04.py
 # Author: Hoanh An (hoanhan@bennington.edu)
-# Date: 03/17/2019
+# Date: 03/29/2019
 #
 
 import RPi.GPIO as GPIO
@@ -18,9 +18,9 @@ CONFIG_BYTES = [0xC2, 0x83]
 # LED 7-segment configs
 LED_DEVICE_ADDRESS = 0x70
 
-# blinking time
+# rest time
 short_rest = 0.1
-long_rest = 0.5
+long_rest = 1
 
 def configure_adc(my_bus):
     my_bus.write_i2c_block_data(DEVICE_ADDRESS, CONFIG_REGISTER, CONFIG_BYTES)
@@ -31,7 +31,6 @@ def configure_led(my_bus):
 
 def write(my_bus, data):
     my_bus.write_i2c_block_data(LED_DEVICE_ADDRESS, 0x00, data)
-
 
 def display(my_bus, d0, d1, d2, d3):
     data = [d0, 0x00, d1, 0x00, 0x00, 0x00, d2, 0x00, d3, 0x00]
@@ -76,13 +75,6 @@ def blink_in_sequence(pin, seq):
         time.sleep(long_rest)
 
 if __name__== "__main__":
-    # set board mode
-    # GPIO.setmode(GPIO.BOARD)
-
-    # setup output pin
-    # output_pin = 11
-    # GPIO.setup(output_pin, GPIO.OUT)
-
     # create a bus object
     bus = smbus.SMBus(1)
 
@@ -104,7 +96,7 @@ if __name__== "__main__":
     # configure led bus
     configure_led(led_bus)
 
-    # display the temperature on the led screen
+    # convert temp from int to string
     str_temp = str(temp)[:4]
     print("temp:", str_temp)
 
@@ -113,6 +105,7 @@ if __name__== "__main__":
     d2 = str_temp[2]
     d3 = str_temp[3]
 
+    # map number to led corresponding hex value
     num_map = {
             "0" : 0x3F,
             "0.": 0xBF,
@@ -136,7 +129,7 @@ if __name__== "__main__":
             "9.": 0xEF
     }
 
-    # either in x.yz or xy.z format
+    # display the temperature on the led screen in either in x.yz or xy.z format
     if d1 == ".":
         display(led_bus, num_map['0'], num_map[d0 + '.'], num_map[d2], num_map[d3])
     elif d2 == ".":

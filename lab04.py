@@ -54,21 +54,26 @@ def display_led(my_bus, temp):
         write_led(my_bus, num_map['0'], num_map['0.'], num_map['0'], num_map['0'])
         return
 
-    # convert temp from int to string
-    str_temp = str(temp)[:4]
+    # if temp < 10, meaning it follows the format x.yz, display 0x.yz
+    if temp < 10:
+        # get the first 4 digits in string
+        str_temp = str(temp)[:4]
+        d0 = str_temp[0]
+        d1 = str_temp[1]
+        d2 = str_temp[2]
+        d3 = str_temp[3]
 
-    # get its digit in string format
-    d0 = str_temp[0]
-    d1 = str_temp[1]
-    d2 = str_temp[2]
-    d3 = str_temp[3]
+        write_led(my_bus, num_map['0'], num_map[d0 + d1], num_map[d2], num_map[d3])
+    else:
+        # get the first 4 digits in string
+        str_temp = str(temp)[:5]
+        d0 = str_temp[0]
+        d1 = str_temp[1]
+        d2 = str_temp[2]
+        d3 = str_temp[3]
+        d4 = str_temp[4]
 
-    # if the value is in the form x.yz, display 0x.yz
-    # if the value is in the form xy.z, display xy.y0
-    if d1 == ".":
-        write_led(my_bus, num_map['0'], num_map[d0 + '.'], num_map[d2], num_map[d3])
-    elif d2 == ".":
-        write_led(my_bus, num_map[d0], num_map[d1 + '.'], num_map[d3], num_map['0'])
+        write_led(my_bus, num_map[d0], num_map[d1 + d2], num_map[d3], num_map[d4])
 
 def write_led(my_bus, d0, d1, d2, d3):
     data = [d0, 0x00, d1, 0x00, 0x00, 0x00, d2, 0x00, d3, 0x00]
@@ -115,7 +120,7 @@ if __name__== "__main__":
 
         # convert voltage to temperature
         temp = convert_voltage_to_temp(vol)
-        print("temp:", str(temp)[:4])
+        print("temp:", str(temp)[:5])
 
         # display temperature on the led screen
         display_led(led_bus, temp)

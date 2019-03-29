@@ -50,6 +50,10 @@ def configure_led(my_bus):
     my_bus.write_i2c_block_data(LED_DEVICE_ADDRESS, 0x89, [0xFF]) # display on
 
 def display_led(my_bus, temp):
+    if temp == 0:
+        write_led(my_bus, num_map['0'], num_map['0.'], num_map['0'], num_map['0'])
+        return
+
     # convert temp from int to string
     str_temp = str(temp)[:4]
 
@@ -64,7 +68,7 @@ def display_led(my_bus, temp):
     if d1 == ".":
         write_led(my_bus, num_map['0'], num_map[d0 + '.'], num_map[d2], num_map[d3])
     elif d2 == ".":
-        write_led(my_bus, num_map[d0], num_map[d1 + '.'], num_map[d2], num_map['0'])
+        write_led(my_bus, num_map[d0], num_map[d1 + '.'], num_map[d3], num_map['0'])
 
 def write_led(my_bus, d0, d1, d2, d3):
     data = [d0, 0x00, d1, 0x00, 0x00, 0x00, d2, 0x00, d3, 0x00]
@@ -94,23 +98,24 @@ def convert_voltage_to_temp(voltage):
 
 if __name__== "__main__":
     # create bus objects
-    bus = smbus.SMBus(1)
+    adc_bus = smbus.SMBus(1)
     led_bus = smbus.SMBus(1)
 
     # configure bus
-    configure_adc(bus)
+    configure_adc(adc_bus)
     configure_led(led_bus)
 
     while True:
         # get raw adc reading
-        read = get_raw_adc_reading(bus)
+        read = get_raw_adc_reading(adc_bus)
 
         # convert adc raw reading to voltage
         vol = convert_adc_read_to_voltage(read)
+        print("vol:", vol)
 
         # convert voltage to temperature
         temp = convert_voltage_to_temp(vol)
-        print("temp:", temp)
+        print("temp:", str(temp)[:4])
 
         # display temperature on the led screen
         display_led(led_bus, temp)

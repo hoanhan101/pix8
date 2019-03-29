@@ -9,7 +9,7 @@ import RPi.GPIO as GPIO
 import smbus
 import time
 
-# ADC configs
+# adc configs
 DEVICE_ADDRESS = 0x48
 CONFIG_REGISTER = 0x01
 CONVERSION_REGISTER = 0x00
@@ -17,6 +17,30 @@ CONFIG_BYTES = [0xC2, 0x83]
 
 # LED 7-segment configs
 LED_DEVICE_ADDRESS = 0x70
+
+# map number to led corresponding hex value
+num_map = {
+        "0" : 0x3F,
+        "0.": 0xBF,
+        "1" : 0x06,
+        "1.": 0x86,
+        "2" : 0x5B,
+        "2.": 0xDB,
+        "3" : 0x4F,
+        "3.": 0xCF,
+        "4" : 0x66,
+        "4.": 0xE6,
+        "5" : 0x6D,
+        "5.": 0xED,
+        "6" : 0x7D,
+        "6.": 0xFD,
+        "7" : 0x07,
+        "7.": 0xA7,
+        "8" : 0x7F,
+        "8.": 0xFF,
+        "9" : 0x6F,
+        "9.": 0xEF
+}
 
 # rest time
 short_rest = 0.1
@@ -105,29 +129,6 @@ if __name__== "__main__":
     d2 = str_temp[2]
     d3 = str_temp[3]
 
-    # map number to led corresponding hex value
-    num_map = {
-            "0" : 0x3F,
-            "0.": 0xBF,
-            "1" : 0x06,
-            "1.": 0x86,
-            "2" : 0x5B,
-            "2.": 0xDB,
-            "3" : 0x4F,
-            "3.": 0xCF,
-            "4" : 0x66,
-            "4.": 0xE6,
-            "5" : 0x6D,
-            "5.": 0xED,
-            "6" : 0x7D,
-            "6.": 0xFD,
-            "7" : 0x07,
-            "7.": 0xA7,
-            "8" : 0x7F,
-            "8.": 0xFF,
-            "9" : 0x6F,
-            "9.": 0xEF
-    }
 
     # display the temperature on the led screen in either in x.yz or xy.z format
     if d1 == ".":

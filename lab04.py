@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 
-# lab04.py
-# Author: Hoanh An (hoanhan@bennington.edu)
+# lab04.py - 7-segment display
+# Author:
+#  - Hoanh An (hoanhan@bennington.edu)
+#  - Luka Pandza (lukapandza@bennington.edu)
 # Date: 03/29/2019
 #
 

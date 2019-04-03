@@ -101,8 +101,12 @@ def convert_adc_read_to_voltage(read):
         return read / 32767 * 5
 
 def convert_voltage_to_temp(voltage):
-    """Convert the voltage to temperature in C degree"""
-    # return temp is in C
+    """Convert the voltage to temperature in C degree.
+
+    Based on the calibration plot, we only make two piecewise functions
+    in this case, ranging from 0 to 38 degree in C. The rest are not
+    that neccessary since we won't be able to test it anyway.
+    """
     temp = 0
     if 2.71644162 < voltage < 3.697916667:
         temp = 53.2 + (-9.07*voltage) + (-1.43*(voltage**2))

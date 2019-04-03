@@ -67,7 +67,7 @@ def display_led(my_bus, temp):
 
         write_led(my_bus, num_map['0'], num_map[d0 + d1], num_map[d2], num_map[d3])
     else:
-        # get the first 4 digits in string
+        # get the first 5 digits in string
         str_temp = str(temp)[:5]
         d0 = str_temp[0]
         d1 = str_temp[1]

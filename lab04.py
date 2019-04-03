@@ -45,13 +45,17 @@ num_map = {
 }
 
 def configure_adc(my_bus):
+    """Configure the adc settings when it starts up"""
     my_bus.write_i2c_block_data(DEVICE_ADDRESS, CONFIG_REGISTER, CONFIG_BYTES)
 
 def configure_led(my_bus):
+    """Configure the 7-segment settings when it starts up"""
     my_bus.write_i2c_block_data(LED_DEVICE_ADDRESS, 0x2F, [0xFF]) # system setup
     my_bus.write_i2c_block_data(LED_DEVICE_ADDRESS, 0x89, [0xFF]) # display on
 
 def display_led(my_bus, temp):
+    """Based on the given temperature, display the value on the 7-segment"""
+    # if the temperature is 0, display all 0
     if temp == 0:
         write_led(my_bus, num_map['0'], num_map['0.'], num_map['0'], num_map['0'])
         return
@@ -78,22 +82,26 @@ def display_led(my_bus, temp):
         write_led(my_bus, num_map[d0], num_map[d1 + d2], num_map[d3], num_map[d4])
 
 def write_led(my_bus, d0, d1, d2, d3):
+    """Write the 4 digit value to the 7-segment display"""
     data = [d0, 0x00, d1, 0x00, 0x00, 0x00, d2, 0x00, d3, 0x00]
     my_bus.write_i2c_block_data(LED_DEVICE_ADDRESS, 0x00, data)
 
 def get_raw_adc_reading(my_bus):
+    """Get the raw adc reading"""
     read = my_bus.read_i2c_block_data(DEVICE_ADDRESS, CONVERSION_REGISTER)
 
     # combine MSB and LSB to a single meaningful value and return it
     return (read[0] << 8 ) + read[1]
 
 def convert_adc_read_to_voltage(read):
+    """Convert the adc reading to voltage"""
     if read > 32767:
         return ((65512 - read) / (65512 - 32767)) * -5
     else:
         return read / 32767 * 5
 
 def convert_voltage_to_temp(voltage):
+    """Convert the voltage to temperature in C degree"""
     # return temp is in C
     temp = 0
     if 2.71644162 < voltage < 3.697916667:

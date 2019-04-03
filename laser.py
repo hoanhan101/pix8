@@ -43,7 +43,11 @@ num_map = {
 
 def configure_tof(my_bus):
     """Configure the TOF settings when it starts up"""
-    my_bus.write_i2c_block_data(TOF_DEVICE_ADDRESS, 0xFF, [0xFF])
+    # my_bus.write_i2c_block_data(TOF_DEVICE_ADDRESS, 0xFF, [0xFF])
+    my_bus.write_i2c_block_data(TOF_DEVICE_ADDRESS, 0xC0, [0xFF])
+
+def write_tof(my_bus):
+    return my_bus.read_i2c_block_data(TOF_DEVICE_ADDRESS, 0xFF)
 
 def configure_led(my_bus):
     """Configure the 7-segment settings when it starts up"""
@@ -86,6 +90,14 @@ def write_led(my_bus, d0, d1, d2, d3):
 if __name__== "__main__":
     # create bus objects
     led_bus = smbus.SMBus(1)
+    tof_bus = smbus.SMBus(1)
 
     # configure bus
     configure_led(led_bus)
+    configure_tof(tof_bus)
+
+    while True:
+        read = write_tof(tof_bus)
+        print(read)
+
+        time.sleep(1)

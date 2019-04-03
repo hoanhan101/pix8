@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 
-# lab03.py
-# Author: Hoanh An (hoanhan@bennington.edu)
+# lab03_v4.py - blink 5 LEDs
+# Author:
+# - Hoanh An (hoanhan@bennington.edu)
+# - Luka Pandza (lukapandza@bennington.edu)
 # Date: 03/17/2019
 #
 

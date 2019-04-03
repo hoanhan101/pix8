@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# lab04.py - 7-segment display
+# lab04.py - show the reading values on the 7-segment display
 # Author:
 #  - Hoanh An (hoanhan@bennington.edu)
 #  - Luka Pandza (lukapandza@bennington.edu)

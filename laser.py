@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# TODO
+# laser.py - show tof reading on the 7-segment display
 # Author:
 #  - Hoanh An (hoanhan@bennington.edu)
 #  - Luka Pandza (lukapandza@bennington.edu)
@@ -10,6 +10,8 @@
 import RPi.GPIO as GPIO
 import smbus
 import time
+
+from VL53L0X_rasp_python.python.VL53L0X import *
 
 # TOF configs
 TOF_DEVICE_ADDRESS = 0x29
@@ -40,14 +42,6 @@ num_map = {
         "9" : 0x6F,
         "9.": 0xEF
 }
-
-def configure_tof(my_bus):
-    """Configure the TOF settings when it starts up"""
-    # my_bus.write_i2c_block_data(TOF_DEVICE_ADDRESS, 0xFF, [0xFF])
-    my_bus.write_i2c_block_data(TOF_DEVICE_ADDRESS, 0xC0, [0xFF])
-
-def write_tof(my_bus):
-    return my_bus.read_i2c_block_data(TOF_DEVICE_ADDRESS, 0xFF)
 
 def configure_led(my_bus):
     """Configure the 7-segment settings when it starts up"""
@@ -88,16 +82,21 @@ def write_led(my_bus, d0, d1, d2, d3):
     my_bus.write_i2c_block_data(LED_DEVICE_ADDRESS, 0x00, data)
 
 if __name__== "__main__":
-    # create bus objects
+    # create and config led bus object
     led_bus = smbus.SMBus(1)
-    tof_bus = smbus.SMBus(1)
-
-    # configure bus
     configure_led(led_bus)
-    configure_tof(tof_bus)
 
-    while True:
-        read = write_tof(tof_bus)
-        print(read)
+    # create a tof object
+    tof = VL53L0X()
+    tof.start_ranging(VL53L0X_BETTER_ACCURACY_MODE)
 
-        time.sleep(1)
+    try:
+        while True:
+            distance = tof.get_distance()
+            print(distance)
+            time.sleep(0.5)
+    except KeyboardInterrupt:
+        print(">> caught keyboard interrupt signal. stop tof")
+        tof.stop_ranging()
+
+    print("exit successfully!")

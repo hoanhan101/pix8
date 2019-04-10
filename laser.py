@@ -48,33 +48,21 @@ def configure_led(my_bus):
     my_bus.write_i2c_block_data(LED_DEVICE_ADDRESS, 0x2F, [0xFF]) # system setup
     my_bus.write_i2c_block_data(LED_DEVICE_ADDRESS, 0x89, [0xFF]) # display on
 
-def display_led(my_bus, temp):
-    """Based on the given temperature, display the value on the 7-segment"""
-    # if the temperature is 0, display all 0
-    if temp == 0:
-        write_led(my_bus, num_map['0'], num_map['0.'], num_map['0'], num_map['0'])
-        return
-
-    # if temp < 10, meaning it follows the format x.yz, display 0x.yz
-    if temp < 10:
-        # get the first 4 digits in string
-        str_temp = str(temp)[:4]
-        d0 = str_temp[0]
-        d1 = str_temp[1]
-        d2 = str_temp[2]
-        d3 = str_temp[3]
-
-        write_led(my_bus, num_map['0'], num_map[d0 + d1], num_map[d2], num_map[d3])
+def display_led(my_bus, num):
+    """Based on the given int number, display the value on the 7-segment"""
+    if num < 0:
+        write_led(my_bus, num_map['0'], num_map['0'], num_map['0'], num_map['0'])
+    elif 0 <= num <= 9:
+        write_led(my_bus, num_map['0'], num_map['0'], num_map['0'], num_map[str(num)])
+    elif 10 <= num <= 99:
+        str_num = str(num)[:2]
+        write_led(my_bus, num_map['0'], num_map['0'], num_map[str_num[0]], num_map[str_num[1]])
+    elif 100 <= num <= 999:
+        str_num = str(num)[:3]
+        write_led(my_bus, num_map['0'], num_map[str_num[0]], num_map[str_num[1]], num_map[str_num[2]])
     else:
-        # get the first 5 digits in string
-        str_temp = str(temp)[:5]
-        d0 = str_temp[0]
-        d1 = str_temp[1]
-        d2 = str_temp[2]
-        d3 = str_temp[3]
-        d4 = str_temp[4]
-
-        write_led(my_bus, num_map[d0], num_map[d1 + d2], num_map[d3], num_map[d4])
+        str_num = str(num)[:4]
+        write_led(my_bus, num_map[str_num[0]], num_map[str_num[1]], num_map[str_num[2]], num_map[str_num[3]])
 
 def write_led(my_bus, d0, d1, d2, d3):
     """Write the 4 digit value to the 7-segment display"""
@@ -99,4 +87,4 @@ if __name__== "__main__":
         print(">> caught keyboard interrupt signal. stop tof")
         tof.stop_ranging()
 
-    print("exit successfully!")
+    print(">> exit successfully!")

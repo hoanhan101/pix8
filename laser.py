@@ -67,11 +67,21 @@ def display_led(my_bus, num):
 def write_led(my_bus, d0, d1, d2, d3):
     """Write the 4 digit value to the 7-segment display"""
     data = [d0, 0x00, d1, 0x00, 0x00, 0x00, d2, 0x00, d3, 0x00]
-    my_bus.write_i2c_block_data(LED_DEVICE_ADDRESS, 0x00, data)
+
+    try:
+        my_bus.write_i2c_block_data(LED_DEVICE_ADDRESS, 0x00, data)
+    except IOError:
+        t = 0.1
+        print("got IOError. try again in", t, "second")
+        time.sleep(t)
 
 if __name__== "__main__":
     # create and config led bus object
     led_bus = smbus.SMBus(1)
+
+    # wait a bit
+    time.sleep(1)
+
     configure_led(led_bus)
 
     # create a tof object
@@ -81,8 +91,8 @@ if __name__== "__main__":
     try:
         while True:
             distance = tof.get_distance()
+            display_led(led_bus, distance)
             print(distance)
-            time.sleep(0.5)
     except KeyboardInterrupt:
         print(">> caught keyboard interrupt signal. stop tof")
         tof.stop_ranging()

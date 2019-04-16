@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# olaser.py - test vl53l0x library
+# olaser.py - experiment with vl53l0x tof sensor
 # Author:
 #  - Hoanh An (hoanhan@bennington.edu)
 #  - Luka Pandza (lukapandza@bennington.edu)

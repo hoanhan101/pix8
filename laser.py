@@ -76,13 +76,14 @@ def write_led(my_bus, d0, d1, d2, d3):
         time.sleep(t)
 
 if __name__== "__main__":
-    # create and config led bus object
-    led_bus = smbus.SMBus(1)
+    # create a bus object
+    bus = smbus.SMBus(1)
 
     # wait a bit
     time.sleep(1)
 
-    configure_led(led_bus)
+    # config led
+    configure_led(bus)
 
     # create a tof object
     tof = VL53L0X()
@@ -91,7 +92,7 @@ if __name__== "__main__":
     try:
         while True:
             distance = tof.get_distance()
-            display_led(led_bus, distance)
+            display_led(bus, distance)
             print(distance)
     except KeyboardInterrupt:
         print(">> caught keyboard interrupt signal. stop tof")

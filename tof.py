@@ -6,6 +6,8 @@
 import smbus
 import time
 
+from registers_map import *
+
 def write_tof(bus, reg, data):
     """
     write to the registere address
@@ -18,17 +20,17 @@ def write_tof(bus, reg, data):
 
     read = bus.read_byte_data(VL53L0X_DEFAULT_ADDRESS, reg)
     if read != data:
-        print(">> err:", hex(read), "is not the same as", hex(data))
+        print("\t*err: got", hex(read), "instead of", hex(data), "when write to", hex(reg))
 
 def read_tof(bus, reg):
     read = bus.read_byte_data(VL53L0X_DEFAULT_ADDRESS, reg)
-    print("return", hex(read), "from", hex(reg))
+    print("\tget", hex(read), "from", hex(reg))
 
 if __name__== "__main__":
     # create a bus object
     bus = smbus.SMBus(1)
 
-    print("=== data init ===")
+    print("data init")
     # Set I2C standard mode
     write_tof(bus, 0x88, 0x00)
 
@@ -43,12 +45,12 @@ if __name__== "__main__":
     write_tof(bus, 0xFF, 0x00)
     write_tof(bus, 0x80, 0x00)
 
-    print("=== static init ===")
+    print("static init")
     write_tof(bus, 0xFF, 0x01)
     read_tof(bus, 0x84)
     write_tof(bus, 0xFF, 0x00)
 
-    print("=== perfrom ref calibration ===")
+    print("perfrom ref calibration")
     # > perform vhv calibartion
     write_tof(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, 0x01)
 
@@ -56,7 +58,7 @@ if __name__== "__main__":
     write_tof(
         bus,
         VL53L0X_REG_SYSRANGE_START,
-        VL53L0X_REG_SYSRANGE_MODE_START_STOP | 0x40)
+        VL53L0X_REG_SYSRANGE_MODE_START_STOP)
 
     # >>> measurement poll for completion
     # >>> get measurement data ready
@@ -77,18 +79,18 @@ if __name__== "__main__":
     # >> restore prev sequence config
     write_tof(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, 0x00)
 
-    print("=== perfrom ref spad mgmt ===")
+    print("perfrom ref spad mgmt")
     write_tof(bus, 0xFF, 0x01)
     write_tof(bus, VL53L0X_REG_DYNAMIC_SPAD_REF_EN_START_OFFSET, 0x00)
     write_tof(bus, VL53L0X_REG_DYNAMIC_SPAD_NUM_REQUESTED_REF_SPAD, 0x2C)
     write_tof(bus, 0xFF, 0x00)
     write_tof(bus, VL53L0X_REG_GLOBAL_CONFIG_REF_EN_START_SELECT, 0xB4)
-    write_tof(bus, VL53L0X_REG_POWER_MANAGEMENT_G01_POWER_FORCE, 0)
+    write_tof(bus, VL53L0X_REG_POWER_MANAGEMENT_GO1_POWER_FORCE, 0)
 
     # FIXME perform ref calibartion again
     # FIXME perform ref signal measurement
 
-    print("=== start single measurement ===")
+    print("start single measurement")
 
     write_tof(bus, 0x80, 0x01)
     write_tof(bus, 0xFF, 0x01)

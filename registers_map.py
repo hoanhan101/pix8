@@ -1,6 +1,6 @@
 #
 # registers_map contains a map of all VL53L0X registers
-# Translated from the C library.
+# Translated from the C library
 # Date: 04/19/19
 #
 

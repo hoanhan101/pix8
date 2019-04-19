@@ -20,7 +20,8 @@ def write_tof(bus, reg, data):
 
     read = bus.read_byte_data(VL53L0X_DEFAULT_ADDRESS, reg)
     if read != data:
-        print("\t*err: got", hex(read), "instead of", hex(data), "when write to", hex(reg))
+        print("\t*err: got", hex(read), "instead of", hex(data),
+                "when write to", hex(reg))
 
 def read_tof(bus, reg):
     read = bus.read_byte_data(VL53L0X_DEFAULT_ADDRESS, reg)
@@ -90,8 +91,10 @@ if __name__== "__main__":
     # FIXME perform ref calibartion again
     # FIXME perform ref signal measurement
 
-    print("start single measurement")
+    print("perform single ranging measurement")
 
+    # perform single measurement
+    # > start measurement
     write_tof(bus, 0x80, 0x01)
     write_tof(bus, 0xFF, 0x01)
     write_tof(bus, 0x00, 0x00)
@@ -103,4 +106,30 @@ if __name__== "__main__":
     write_tof(bus, 0x80, 0x00)
 
     write_tof(bus, VL53L0X_REG_SYSRANGE_START, 0x01)
-    read_tof(bus, VL53L0X_REG_SYSRANGE_START)
+
+    # wait until start bit has been cleared
+    start_stop_byte = VL53L0X_REG_SYSRANGE_MODE_START_STOP
+    tmp_byte = VL53L0X_REG_SYSRANGE_MODE_START_STOP
+    max_loop = 2000
+    loop_nb = 0
+
+    while loop_nb < max_loop:
+        read_tof(bus, VL53L0X_REG_SYSRANGE_START)
+        loop_nb += 1
+
+    # FIXME - why need these tmp byte and start stop byte?
+    # while ((tmp_byte & start_stop_byte) == start_stop_byte) and (loop_nb <
+    #         max_loop):
+    #     tmp_byte = read_tof(bus, VL53L0X_REG_SYSRANGE_START)
+    #     loop_nb += 1
+
+    print("out of while loop")
+
+    # FIXME - didn't not get anything news, maybe try to move on
+    # to some of the functions belows...maybe that would work u know
+
+    # > measurement poll for completion
+
+    # get ranging measurement data
+
+    # clear interrup mask

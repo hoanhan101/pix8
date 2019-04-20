@@ -27,6 +27,11 @@ def read_tof(bus, reg):
     read = bus.read_byte_data(VL53L0X_DEFAULT_ADDRESS, reg)
     print("\tget", hex(read), "from", hex(reg))
 
+    return read
+
+def make_uint16(lsb, msb):
+    return (msb << 8) + lsb
+
 if __name__== "__main__":
     # create a bus object
     bus = smbus.SMBus(1)
@@ -94,7 +99,7 @@ if __name__== "__main__":
     print("perform single ranging measurement")
 
     # perform single measurement
-    # > start measurement
+    print("start measurement")
     write_tof(bus, 0x80, 0x01)
     write_tof(bus, 0xFF, 0x01)
     write_tof(bus, 0x00, 0x00)
@@ -105,31 +110,42 @@ if __name__== "__main__":
     write_tof(bus, 0xFF, 0x00)
     write_tof(bus, 0x80, 0x00)
 
+    # device mode single ranging
     write_tof(bus, VL53L0X_REG_SYSRANGE_START, 0x01)
 
     # wait until start bit has been cleared
     start_stop_byte = VL53L0X_REG_SYSRANGE_MODE_START_STOP
-    tmp_byte = VL53L0X_REG_SYSRANGE_MODE_START_STOP
+    tmp_byte = start_stop_byte
     max_loop = 2000
     loop_nb = 0
 
-    while loop_nb < max_loop:
-        read_tof(bus, VL53L0X_REG_SYSRANGE_START)
+    while ((tmp_byte & start_stop_byte) == start_stop_byte) and (loop_nb <
+            max_loop):
+        if loop_nb > 0:
+            tmp_byte = read_tof(bus, VL53L0X_REG_SYSRANGE_START)
+
         loop_nb += 1
 
-    # FIXME - why need these tmp byte and start stop byte?
-    # while ((tmp_byte & start_stop_byte) == start_stop_byte) and (loop_nb <
-    #         max_loop):
-    #     tmp_byte = read_tof(bus, VL53L0X_REG_SYSRANGE_START)
-    #     loop_nb += 1
+    print("measurement poll for completion")
 
-    print("out of while loop")
+    print("get measurement data")
+    sysrange_status_reg = read_tof(bus, VL53L0X_REG_RESULT_RANGE_STATUS)
+    if sysrange_status_reg & 0x01:
+        print("measurement data ready")
 
-    # FIXME - didn't not get anything news, maybe try to move on
-    # to some of the functions belows...maybe that would work u know
+    print("get ranging measurement data")
 
-    # > measurement poll for completion
+    raw_data = bus.read_i2c_block_data(VL53L0X_DEFAULT_ADDRESS, 0x14)
 
-    # get ranging measurement data
+    range_millimeter = make_uint16(raw_data[11], raw_data[10])
+    signal_rate = make_uint16(raw_data[7], raw_data[6])
+    ambient_rate = make_uint16(raw_data[9], raw_data[8])
+    effective_spad_rtn_count = make_uint16(raw_data[3], raw_data[2])
+    device_range_status = raw_data[0]
 
-    # clear interrup mask
+    print(
+            "range_millimeter:", range_millimeter,
+            "signal rate:", hex(signal_rate),
+            "ambient rate:", hex(ambient_rate),
+            "effective spad rtn count:", hex(effective_spad_rtn_count),
+            "device range status:", hex(device_range_status))

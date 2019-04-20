@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# tof.py - experiment with vl53l0x tof sensor
+# single.py - single long range test
 # Date: 04/18/2019
 
 import smbus
@@ -32,10 +32,7 @@ def read_tof(bus, reg):
 def make_uint16(lsb, msb):
     return (msb << 8) + lsb
 
-if __name__== "__main__":
-    # create a bus object
-    bus = smbus.SMBus(1)
-
+def data_init(bus):
     print("data init")
 
     # set I2C standard mode
@@ -52,15 +49,19 @@ if __name__== "__main__":
     write_tof(bus, 0xFF, 0x00)
     write_tof(bus, 0x80, 0x00)
 
+    # TODO: enable checks here
+
+def static_init(bus):
     print("static init")
 
     write_tof(bus, 0xFF, 0x01)
     read_tof(bus, 0x84)
     write_tof(bus, 0xFF, 0x00)
 
+def perform_ref_calibration(bus):
     print("perfrom ref calibration")
 
-    print("> perfrom vhv calibration")
+    print("perfrom vhv calibration")
 
     # run vhv
     write_tof(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, 0x01)
@@ -94,11 +95,12 @@ if __name__== "__main__":
     print("> perfrom phase calibration")
     print("> restore previous sequence config")
 
-
     # >> restore prev sequence config
     write_tof(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, 0x00)
 
-    print("perfrom ref spad mgmt")
+def perform_ref_spad_management(bus):
+    print("perform ref spad management")
+
     write_tof(bus, 0xFF, 0x01)
     write_tof(bus, VL53L0X_REG_DYNAMIC_SPAD_REF_EN_START_OFFSET, 0x00)
     write_tof(bus, VL53L0X_REG_DYNAMIC_SPAD_NUM_REQUESTED_REF_SPAD, 0x2C)
@@ -109,16 +111,7 @@ if __name__== "__main__":
     # FIXME perform ref calibartion again
     # FIXME perform ref signal measurement
 
-    print("setup single ranging mode")
-
-    print("set limit check enable")
-
-    print("set limit check value")
-
-    print("set measurement timing buget micro seconds")
-
-    print("set vcse pulse period")
-
+def perform_single_ranging_measurement(bus):
     print("perform single ranging measurement")
 
     # perform single measurement
@@ -172,3 +165,30 @@ if __name__== "__main__":
             "ambient rate:", hex(ambient_rate),
             "effective spad rtn count:", hex(effective_spad_rtn_count),
             "device range status:", hex(device_range_status))
+
+if __name__== "__main__":
+    # create a bus object
+    bus = smbus.SMBus(1)
+
+    data_init(bus)
+
+    static_init(bus)
+
+    perform_ref_calibration(bus)
+
+    perform_ref_spad_management(bus)
+
+    # set_device_mode(bus)
+
+    # set_limit_check_enabled(bus)
+
+    # set_limit_check_value(bus)
+
+    # set_measurement_timing_buget_microseconds(bus)
+
+    # set_vcse_ilse_period(bus)
+
+    perform_single_ranging_measurement(bus)
+
+
+

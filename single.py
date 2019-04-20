@@ -9,16 +9,10 @@ import time
 from registers_map import *
 
 static_seq_config = 0
+max_loop = 2000
 
 def write_byte(bus, reg, data):
-    """
-    write to the registere address
-    read back its data
-    check if it's the same
-    """
     bus.write_byte_data(VL53L0X_DEFAULT_ADDRESS, reg, data)
-
-    time.sleep(0.1)
 
     read = bus.read_byte_data(VL53L0X_DEFAULT_ADDRESS, reg)
     if read != data:
@@ -139,7 +133,7 @@ def measurement_poll_for_completion(bus):
     print("measurement poll for completion")
 
     loop_nb = 0
-    while loop_nb <= 2000:
+    while loop_nb <= max_loop:
         data = get_measurement_data_ready(bus)
         if data == 1:
             print("measurement is ready")
@@ -150,7 +144,7 @@ def measurement_poll_for_completion(bus):
         # polling delay
         time.sleep(0.1)
 
-    if loop_nb == 2000:
+    if loop_nb == max_loop:
         print("*err: measurement time out")
 
 def get_measurement_data_ready(bus):
@@ -194,7 +188,7 @@ def perform_phase_calibration(bus):
     write_byte(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, static_seq_config)
 
 def perform_ref_spad_management(bus):
-    print(">> perform ref spad management")
+    print("perform ref spad management")
 
     write_byte(bus, 0xFF, 0x01)
     write_byte(bus, VL53L0X_REG_DYNAMIC_SPAD_REF_EN_START_OFFSET, 0x00)
@@ -228,10 +222,12 @@ def perform_ref_signal_measurement(bus):
 
     return signal_rate
 
-def perform_single_ranging_measurement(bus):
-    print("perform single ranging measurement")
+def perform_single_measurement(bus):
+    start_measurement(bus)
 
-    # perform single measurement
+    measurement_poll_for_completion(bus)
+
+def start_measurement(bus):
     print("start measurement")
     write_byte(bus, 0x80, 0x01)
     write_byte(bus, 0xFF, 0x01)
@@ -249,7 +245,6 @@ def perform_single_ranging_measurement(bus):
     # wait until start bit has been cleared
     start_stop_byte = VL53L0X_REG_SYSRANGE_MODE_START_STOP
     tmp_byte = start_stop_byte
-    max_loop = 2000
     loop_nb = 0
 
     while ((tmp_byte & start_stop_byte) == start_stop_byte) and (loop_nb <
@@ -259,14 +254,15 @@ def perform_single_ranging_measurement(bus):
 
         loop_nb += 1
 
-    print("measurement poll for completion")
+    if loop_nb >= max_loop:
+        print("err: measurement time out")
 
-    print("get measurement data")
+def get_ranging_measurement_data(bus):
+    print("get ranging measurement data")
+
     sysrange_status_reg = read_byte(bus, VL53L0X_REG_RESULT_RANGE_STATUS)
     if sysrange_status_reg & 0x01:
         print("measurement data ready")
-
-    print("get ranging measurement data")
 
     raw_data = bus.read_i2c_block_data(VL53L0X_DEFAULT_ADDRESS, 0x14)
 
@@ -283,6 +279,16 @@ def perform_single_ranging_measurement(bus):
             "effective spad rtn count:", hex(effective_spad_rtn_count),
             "device range status:", hex(device_range_status))
 
+def perform_single_ranging_measurement(bus):
+    print("perform single ranging measurement")
+
+    perform_single_measurement(bus)
+
+    get_ranging_measurement_data(bus)
+
+    clear_interrupt_mask(bus)
+
+
 if __name__== "__main__":
     # create a bus object
     bus = smbus.SMBus(1)
@@ -293,16 +299,6 @@ if __name__== "__main__":
 
     perform_ref_calibration(bus)
 
-    perform_ref_spad_management(bus)
-
-    # set_device_mode(bus)
-
-    # set_limit_check_enabled(bus)
-
-    # set_limit_check_value(bus)
-
-    # set_measurement_timing_buget_microseconds(bus)
-
-    # set_vcse_ilse_period(bus)
-
-    # perform_single_ranging_measurement(bus)
+    while True:
+        perform_ref_spad_management(bus)
+        time.sleep(1)

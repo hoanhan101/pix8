@@ -8,6 +8,8 @@ import time
 
 from registers_map import *
 
+static_seq_config = 0
+
 def write_byte(bus, reg, data):
     """
     write to the registere address
@@ -62,49 +64,114 @@ def data_init(bus):
 def static_init(bus):
     print("static init")
 
+    # TODO - set ref spad from nvm
+    # TODO - initialize tuning settings buffer
+    # TODO - set interrupt config to new sample ready 
+
     write_byte(bus, 0xFF, 0x01)
     read_byte(bus, 0x84)
     write_byte(bus, 0xFF, 0x00)
 
+    # read the sequence config and save it
+    static_seq_config = read_byte(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG)
+
+    # TODO - update parameters 
+    # TODO - read the sequence config and save it 
+    # TODO - disable msrc and tcc 
+    # TODO - set pal state to standby 
+    # TODO - store pre-range vcsel period 
+    # TODO - store final-range vcsel period 
+    # TODO - store pre-range timeout 
+    # TODO - store final-range timeout 
+
 def perform_ref_calibration(bus):
     print("perfrom ref calibration")
 
+    perform_vhv_calibration(bus)
+
+    perform_phase_calibration(bus)
+
+    # retore previous sequence config
+    write_byte(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, static_seq_config)
+
+def perform_vhv_calibration(bus):
     print("perfrom vhv calibration")
 
     # run vhv
     write_byte(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, 0x01)
 
-    print(">> perform single ref calibration")
-    print(">> perform ref calibration io")
-    print(">> restore previous sequnce config")
+    perform_single_ref_calibration(bus, 0x40)
 
-    # >> perform single ref calibration
+    # read vhv from device
+    ref_calibration_io(bus, 0xCB)
+
+    # retore previous sequence config
+    write_byte(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, static_seq_config)
+
+def perform_single_ref_calibration(bus, vhv_init_byte):
+    print("perform single ref calibration")
+
     write_byte(
         bus,
         VL53L0X_REG_SYSRANGE_START,
-        VL53L0X_REG_SYSRANGE_MODE_START_STOP)
+        VL53L0X_REG_SYSRANGE_MODE_START_STOP | vhv_init_byte)
 
-    # >>> measurement poll for completion
-    # >>> get measurement data ready
-    read_byte(bus, VL53L0X_REG_RESULT_RANGE_STATUS)
+    measurement_poll_for_completion(bus)
 
-    # >>>
+    clear_interrupt_mask(bus)
+    
     write_byte(bus, VL53L0X_REG_SYSRANGE_START, 0x00)
 
-    # >> read vhv from device
+def measurement_poll_for_completion(bus):
+    print("measurement poll for completion")
+
+    loop_nb = 0
+    while loop_nb <= 2000:
+        data = get_measurement_data_ready(bus)
+        if data == 1:
+            break
+
+        loop_nb += 1
+
+        # FIXME - polling delay
+
+    # FIXME - what's going on here?
+    print("measurement time out")
+
+def get_measurement_data_ready(bus):
+    print("get measurement data ready")
+    return read_byte(bus, VL53L0X_REG_RESULT_RANGE_STATUS)
+
+def clear_interrupt_mask(bus):
+    print("TODO: clear interrupt mask")
+
+def ref_calibration_io(bus, byte):
+    print("ref calibration io")
+
+    # read vhv from device
     write_byte(bus, 0xFF, 0x01)
     write_byte(bus, 0x00, 0x00)
     write_byte(bus, 0xFF, 0x00)
 
-    read_byte(bus, 0xCB)
+    read_byte(bus, byte)
 
-    # TODO perform phase calibartion
+    write_byte(bus, 0xFF, 0x01)
+    write_byte(bus, 0x00, 0x00)
+    write_byte(bus, 0xFF, 0x00)
 
-    print("> perfrom phase calibration")
-    print("> restore previous sequence config")
+def perform_phase_calibration(bus):
+    print("perform phase calibration")
 
-    # >> restore prev sequence config
-    write_byte(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, 0x00)
+    # run phase cal
+    write_byte(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, 0x02)
+
+    perform_single_ref_calibration(bus, 0x0)
+
+    # read phase cal from device
+    ref_calibration_io(bus, 0xCB)
+
+    # retore previous sequence config
+    write_byte(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, static_seq_config)
 
 def perform_ref_spad_management(bus):
     print("perform ref spad management")
@@ -197,6 +264,3 @@ if __name__== "__main__":
     # set_vcse_ilse_period(bus)
 
     perform_single_ranging_measurement(bus)
-
-
-

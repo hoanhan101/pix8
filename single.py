@@ -129,18 +129,25 @@ def measurement_poll_for_completion(bus):
     while loop_nb <= 2000:
         data = get_measurement_data_ready(bus)
         if data == 1:
+            print("measurement is ready")
             break
 
         loop_nb += 1
 
-        # FIXME - polling delay
+        # polling delay
+        time.sleep(0.1)
 
-    # FIXME - what's going on here?
-    print("measurement time out")
+    if loop_nb == 2000:
+        print("measurement time out")
 
 def get_measurement_data_ready(bus):
     print("get measurement data ready")
-    return read_byte(bus, VL53L0X_REG_RESULT_RANGE_STATUS)
+
+    status_reg = read_byte(bus, VL53L0X_REG_RESULT_RANGE_STATUS)
+    if status_reg & 0x01:
+        return 1
+
+    return 0
 
 def clear_interrupt_mask(bus):
     print("TODO: clear interrupt mask")
@@ -168,7 +175,7 @@ def perform_phase_calibration(bus):
     perform_single_ref_calibration(bus, 0x0)
 
     # read phase cal from device
-    ref_calibration_io(bus, 0xCB)
+    ref_calibration_io(bus, 0xEE)
 
     # retore previous sequence config
     write_byte(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, static_seq_config)

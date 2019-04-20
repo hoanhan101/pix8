@@ -31,6 +31,19 @@ def read_byte(bus, reg):
 
     return read
 
+def read_block(bus, reg):
+    read = bus.read_i2c_block_data(VL53L0X_DEFAULT_ADDRESS, reg)
+    print("\tget", hex(read), "from", hex(reg))
+
+    return read
+
+def read_word(bus, reg):
+    raw = bus.read_i2c_block_data(VL53L0X_DEFAULT_ADDRESS, reg)[:2]
+    read = (raw[0] << 8) + raw[1]
+    print("\tget", hex(read), "from", hex(reg))
+
+    return read
+
 def make_uint16(lsb, msb):
     return (msb << 8) + lsb
 
@@ -91,7 +104,7 @@ def perform_ref_calibration(bus):
 
     perform_phase_calibration(bus)
 
-    # retore previous sequence config
+    # retore static sequence config
     write_byte(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, static_seq_config)
 
 def perform_vhv_calibration(bus):
@@ -105,7 +118,7 @@ def perform_vhv_calibration(bus):
     # read vhv from device
     ref_calibration_io(bus, 0xCB)
 
-    # retore previous sequence config
+    # retore static sequence config
     write_byte(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, static_seq_config)
 
 def perform_single_ref_calibration(bus, vhv_init_byte):
@@ -138,7 +151,7 @@ def measurement_poll_for_completion(bus):
         time.sleep(0.1)
 
     if loop_nb == 2000:
-        print("measurement time out")
+        print("*err: measurement time out")
 
 def get_measurement_data_ready(bus):
     print("get measurement data ready")
@@ -177,11 +190,11 @@ def perform_phase_calibration(bus):
     # read phase cal from device
     ref_calibration_io(bus, 0xEE)
 
-    # retore previous sequence config
+    # retore static sequence config
     write_byte(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, static_seq_config)
 
 def perform_ref_spad_management(bus):
-    print("perform ref spad management")
+    print(">> perform ref spad management")
 
     write_byte(bus, 0xFF, 0x01)
     write_byte(bus, VL53L0X_REG_DYNAMIC_SPAD_REF_EN_START_OFFSET, 0x00)
@@ -190,8 +203,30 @@ def perform_ref_spad_management(bus):
     write_byte(bus, VL53L0X_REG_GLOBAL_CONFIG_REF_EN_START_SELECT, 0xB4)
     write_byte(bus, VL53L0X_REG_POWER_MANAGEMENT_GO1_POWER_FORCE, 0)
 
-    # FIXME perform ref calibartion again
-    # FIXME perform ref signal measurement
+    perform_ref_calibration(bus)
+
+    target_rate = 0x0A00
+    peak_rate = perform_ref_signal_measurement(bus)
+    if peak_rate > target_rate:
+        print("signal rate measurement too high")
+
+def perform_ref_signal_measurement(bus):
+    print("perform ref signal measurement")
+
+    write_byte(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, 0xC0)
+
+    perform_single_ranging_measurement(bus)
+
+    write_byte(bus, 0xFF, 0x01)
+
+    signal_rate = read_word(bus, VL53L0X_REG_RESULT_PEAK_SIGNAL_RATE_REF)
+
+    write_byte(bus, 0xFF, 0x00)
+
+    # retore static sequence config
+    write_byte(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, static_seq_config)
+
+    return signal_rate
 
 def perform_single_ranging_measurement(bus):
     print("perform single ranging measurement")
@@ -270,4 +305,4 @@ if __name__== "__main__":
 
     # set_vcse_ilse_period(bus)
 
-    perform_single_ranging_measurement(bus)
+    # perform_single_ranging_measurement(bus)

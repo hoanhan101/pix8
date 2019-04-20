@@ -16,8 +16,6 @@ def write_tof(bus, reg, data):
     """
     bus.write_byte_data(VL53L0X_DEFAULT_ADDRESS, reg, data)
 
-    time.sleep(0.1)
-
     read = bus.read_byte_data(VL53L0X_DEFAULT_ADDRESS, reg)
     if read != data:
         print("\t*err: got", hex(read), "instead of", hex(data),

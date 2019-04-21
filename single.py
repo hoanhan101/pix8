@@ -200,28 +200,42 @@ def perform_ref_spad_management(bus):
 
     perform_ref_calibration(bus)
 
-    target_rate = 0x0A00
-    peak_rate = perform_ref_signal_measurement(bus)
-    if peak_rate > target_rate:
-        print("signal rate measurement too high")
+    # target_rate = 0x0A00
+    # peak_rate = perform_ref_signal_measurement(bus)
+    # if peak_rate > target_rate:
+    #     print("signal rate measurement too high")
+
+    perform_ref_signal_measurement(bus)
 
 def perform_ref_signal_measurement(bus):
     print("perform ref signal measurement")
 
     write_byte(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, 0xC0)
 
-    perform_single_ranging_measurement(bus)
+    measurement = perform_single_ranging_measurement(bus)
 
     write_byte(bus, 0xFF, 0x01)
 
-    signal_rate = read_word(bus, VL53L0X_REG_RESULT_PEAK_SIGNAL_RATE_REF)
+    # signal_rate = read_word(bus, VL53L0X_REG_RESULT_PEAK_SIGNAL_RATE_REF)
+    read_word(bus, VL53L0X_REG_RESULT_PEAK_SIGNAL_RATE_REF)
 
     write_byte(bus, 0xFF, 0x00)
 
     # retore static sequence config
     write_byte(bus, VL53L0X_REG_SYSTEM_SEQUENCE_CONFIG, static_seq_config)
 
-    return signal_rate
+    return measurement
+
+def perform_single_ranging_measurement(bus):
+    print("perform single ranging measurement")
+
+    perform_single_measurement(bus)
+
+    data = get_ranging_measurement_data(bus)
+
+    clear_interrupt_mask(bus)
+
+    return data
 
 def perform_single_measurement(bus):
     start_measurement(bus)
@@ -280,14 +294,7 @@ def get_ranging_measurement_data(bus):
             "effective spad rtn count:", hex(effective_spad_rtn_count),
             "device range status:", hex(device_range_status))
 
-def perform_single_ranging_measurement(bus):
-    print("perform single ranging measurement")
-
-    perform_single_measurement(bus)
-
-    get_ranging_measurement_data(bus)
-
-    clear_interrupt_mask(bus)
+    return range_millimeter
 
 
 if __name__== "__main__":
@@ -297,13 +304,13 @@ if __name__== "__main__":
     # config 7-segment display
     config_led(bus)
 
-    # initialize vl53l0x
+    # cofig vl53l0x
     data_init(bus)
     static_init(bus)
-
-    # perform ref calibration
     perform_ref_calibration(bus)
-
     perform_ref_spad_management(bus)
 
-    perform_ref_signal_measurement(bus)
+    while True:
+        distance = perform_ref_signal_measurement(bus)
+        display_led(bus, distance)
+        time.sleep(0.5)

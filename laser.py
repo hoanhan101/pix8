@@ -43,7 +43,7 @@ num_map = {
         "9.": 0xEF
 }
 
-def configure_led(my_bus):
+def config_led(my_bus):
     """Configure the 7-segment settings when it starts up"""
     my_bus.write_i2c_block_data(LED_DEVICE_ADDRESS, 0x2F, [0xFF]) # system setup
     my_bus.write_i2c_block_data(LED_DEVICE_ADDRESS, 0x89, [0xFF]) # display on
@@ -83,7 +83,7 @@ if __name__== "__main__":
     time.sleep(1)
 
     # config led
-    configure_led(bus)
+    config_led(bus)
 
     # create a tof object
     tof = VL53L0X()

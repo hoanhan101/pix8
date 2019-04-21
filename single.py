@@ -1,11 +1,12 @@
 #!/usr/bin/python3
 
-# single.py - single long range test
+# single.py - single reading
 # Date: 04/18/2019
 
 import smbus
 import time
 
+from led import config_led, display_led
 from registers_map import *
 
 static_seq_config = 0
@@ -293,12 +294,16 @@ if __name__== "__main__":
     # create a bus object
     bus = smbus.SMBus(1)
 
-    data_init(bus)
+    # config 7-segment display
+    config_led(bus)
 
+    # initialize vl53l0x
+    data_init(bus)
     static_init(bus)
 
+    # perform ref calibration
     perform_ref_calibration(bus)
 
-    while True:
-        perform_ref_spad_management(bus)
-        time.sleep(1)
+    perform_ref_spad_management(bus)
+
+    perform_ref_signal_measurement(bus)

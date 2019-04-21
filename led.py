@@ -31,10 +31,15 @@ num_map = {
         "9.": 0xEF
 }
 
-def configure_led(my_bus):
+def config_led(my_bus):
     """Configure the 7-segment settings when it starts up"""
-    my_bus.write_i2c_block_data(LED_DEVICE_ADDRESS, 0x2F, [0xFF]) # system setup
-    my_bus.write_i2c_block_data(LED_DEVICE_ADDRESS, 0x89, [0xFF]) # display on
+    try:
+        my_bus.write_i2c_block_data(LED_DEVICE_ADDRESS, 0x2F, [0xFF]) # system setup
+        my_bus.write_i2c_block_data(LED_DEVICE_ADDRESS, 0x89, [0xFF]) # display on
+    except IOError:
+        t = 1
+        print("got IOError. try again in", t, "second")
+        time.sleep(t)
 
 def display_led(my_bus, num):
     """Based on the given int number, display the value on the 7-segment"""

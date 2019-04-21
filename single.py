@@ -313,4 +313,4 @@ if __name__== "__main__":
     while True:
         distance = perform_ref_signal_measurement(bus)
         display_led(bus, distance)
-        time.sleep(0.5)
+        time.sleep(0.001)
